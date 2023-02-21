@@ -7,11 +7,22 @@
 
 int main()
 {
-	pqxx::connection c("host=localhost "
-		"port=5432 "
-		"dbname=netology05 "
-		"user=postgres "
-		"password=111111");
-	std::cout << "Hello CMake." << std::endl;
+	try
+	{
+		pqxx::connection c("host=localhost "
+			"port=5432 "
+			"dbname=netology05 "
+			"user=postgres "
+			"password=111111");
+	}
+	catch (const pqxx::sql_error& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+	catch (...)
+	{
+	std::cout << "Some error.." << std::endl;
+
+	}
 	return 0;
 }
