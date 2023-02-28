@@ -27,7 +27,7 @@ int main()
 		//std::cout << client->addClient() << std::endl;
 		client->addClient("Курочкин");
 
-		return 0;
+		//return 0;
 
 		pqxx::connection c("host=localhost "
 			"port=5432 "
@@ -37,8 +37,8 @@ int main()
 
 		// Создаем БД
 		pqxx::work tx{ c };
-		//tx.exec("DROP TABLE IF EXISTS public.Phones");
-		//tx.exec("DROP TABLE IF EXISTS public.Clients");
+		tx.exec("DROP TABLE IF EXISTS public.Phones");
+		tx.exec("DROP TABLE IF EXISTS public.Clients");
 		tx.exec("CREATE TABLE IF NOT EXISTS public.Clients("
 			"id SERIAL PRIMARY KEY, "
 			"\"firstname\" VARCHAR NOT NULL,"
@@ -49,9 +49,16 @@ int main()
 			"\"phone\" VARCHAR NOT NULL,"
 			"\"client\" INTEGER REFERENCES public.Clients(id))");
 
+		//tx.commit();
+		tx.exec("commit;");
+
+		// Заполняем БД тестовыми данными
+		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Ivan', 'Kukuev', 'vanek@example.ru')");
+		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Gennady', 'Reptile', 'bezzubiy@example.ru')");
+		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Iiiiigor', 'Babushkin', 'top4eg@example.ru')");
+		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Evlampiy', '4orny', 'demon666@example.ru')");
+		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Shamil', 'Perviy', 'tcar@example.ru')");
 		tx.commit();
-
-
 
 
 
@@ -60,9 +67,9 @@ int main()
 	{
 		std::cout << e.what() << std::endl;
 	}
-	catch (...)
+	catch (const pqxx::usage_error e)
 	{
-		std::cout << "Some error.." << std::endl;
+		std::cout << "Some error.. " << e.what() << std::endl;
 	}
 	return 0;
 }
