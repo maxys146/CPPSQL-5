@@ -7,15 +7,12 @@
 class Client
 {
 public:
-	void addClient(auto &c, std::string asd)
+	void addClient(auto &c, std::string firstname, std::string lastname, std::string email)
 	{
 		pqxx::work tx{ c };
-		std::cout << "Добавляем клиента: " << asd << "\n";
-		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Ivan 2', 'Kukuev', 'vanek@example.ru')");
+		std::cout << "Добавляем клиента: " << firstname << "\n";
+		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('" + tx.esc(firstname) + "', '" + tx.esc(lastname) + "', '" + tx.esc(email) + "')");
 		tx.commit();
-		
-
-		//return 1324;
 	}
 
 	// TODO Конструктор
@@ -28,8 +25,6 @@ int main()
 		//setlocale(LC_ALL, "ru_RU.UTF-8");
 		setlocale(LC_ALL, "Russian");
 
-		//return 0;
-
 		pqxx::connection c("host=localhost "
 			"port=5432 "
 			"dbname=netology05 "
@@ -40,8 +35,11 @@ int main()
 
 		Client* client = new Client;
 		//std::cout << client->addClient() << std::endl;
-		client->addClient(c, "Курочкин");
-		client->addClient(c, "Курочкин");
+		client->addClient(c, "Ivan", "Kukuev", "vanek@example.ru");
+		client->addClient(c, "Gennady", "Reptile", "bezzubiy@example.ru");
+		client->addClient(c, "Iiiiigor", "Babushkin", "top4eg@example.ru");
+		client->addClient(c, "Evlampiy", "4orny", "demon666@example.ru");
+		client->addClient(c, "Shamil", "Perviy", "tcar@example.ru");
 		
 
 
@@ -62,25 +60,18 @@ int main()
 
 		//tx.commit();
 		tx.exec("commit;");
-
-		// Заполняем БД тестовыми данными
-		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Ivan', 'Kukuev', 'vanek@example.ru')");
-		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Gennady', 'Reptile', 'bezzubiy@example.ru')");
-		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Iiiiigor', 'Babushkin', 'top4eg@example.ru')");
-		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Evlampiy', '4orny', 'demon666@example.ru')");
-		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Shamil', 'Perviy', 'tcar@example.ru')");
-		tx.commit();
-
-
-
 	}
 	catch (const pqxx::sql_error& e)
 	{
-		std::cout << e.what() << std::endl;
+		std::cout << "SQL error: " << e.what() << std::endl;
 	}
 	catch (const pqxx::usage_error e)
 	{
-		std::cout << "Some error.. " << e.what() << std::endl;
+		std::cout << "Usage error: " << e.what() << std::endl;
+	}
+	catch (...)
+	{
+		std::cout << "Some error...";
 	}
 	return 0;
 }
