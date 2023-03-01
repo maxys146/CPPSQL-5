@@ -14,6 +14,13 @@ public:
 		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('" + tx.esc(firstname) + "', '" + tx.esc(lastname) + "', '" + tx.esc(email) + "')");
 		tx.commit();
 	}
+	void updateClient(auto& c, int clientId, std::string firstname, std::string lastname, std::string email)
+	{
+		pqxx::work tx{ c };
+		std::cout << "Обновляем клиента: " << firstname << "\n";
+		tx.exec("UPDATE public.Clients SET firstname = '" + tx.esc(firstname) + "', lastname = '" + tx.esc(lastname) + "', email = '" + tx.esc(email) + "' WHERE id = '" + tx.esc(std::to_string(clientId)) + "'");
+		tx.commit();
+	}
 	void addPhone(auto& c, int clientId, std::string phone)
 	{
 		pqxx::work tx{ c };
@@ -66,12 +73,15 @@ int main()
 		client->addClient(c, "Evlampiy", "4orny", "demon666@example.ru");
 		client->addClient(c, "Shamil", "Perviy", "tcar@example.ru");
 
-		client->addPhone(c, 2, "9834759345");
-		client->addPhone(c, 2, "324");
-		client->addPhone(c, 1, "34534534");
-		client->addPhone(c, 1, "34534534");
+		client->addPhone(c, 1, "12222222");
+		client->addPhone(c, 1, "13333333");
+		client->addPhone(c, 2, "21111111");
+		client->addPhone(c, 2, "22222222");
+		client->addPhone(c, 2, "23333333");
+		client->addPhone(c, 3, "31111111");
+		client->addPhone(c, 4, "41111111");
 
-
+		client->updateClient(c, 2, "Pupuk", "Perdikov", "PUPUK@example.ru");
 
 
 
