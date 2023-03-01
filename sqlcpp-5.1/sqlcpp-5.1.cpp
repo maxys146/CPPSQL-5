@@ -7,9 +7,14 @@
 class Client
 {
 public:
-	void addClient(std::string asd)
+	void addClient(auto &c, std::string asd)
 	{
+		pqxx::work tx{ c };
 		std::cout << "Добавляем клиента: " << asd << "\n";
+		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('Ivan 2', 'Kukuev', 'vanek@example.ru')");
+		tx.commit();
+		
+
 		//return 1324;
 	}
 
@@ -23,10 +28,6 @@ int main()
 		//setlocale(LC_ALL, "ru_RU.UTF-8");
 		setlocale(LC_ALL, "Russian");
 
-		Client* client = new Client;
-		//std::cout << client->addClient() << std::endl;
-		client->addClient("Курочкин");
-
 		//return 0;
 
 		pqxx::connection c("host=localhost "
@@ -35,6 +36,16 @@ int main()
 			"user=postgres "
 			"password=111111");
 
+		
+
+		Client* client = new Client;
+		//std::cout << client->addClient() << std::endl;
+		client->addClient(c, "Курочкин");
+		client->addClient(c, "Курочкин");
+		
+
+
+		return 0;
 		// Создаем БД
 		pqxx::work tx{ c };
 		tx.exec("DROP TABLE IF EXISTS public.Phones");
