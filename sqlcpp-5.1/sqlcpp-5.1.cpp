@@ -7,11 +7,18 @@
 class Client
 {
 public:
-	void addClient(auto &c, std::string firstname, std::string lastname, std::string email)
+	void addClient(auto& c, std::string firstname, std::string lastname, std::string email)
 	{
 		pqxx::work tx{ c };
 		std::cout << "Добавляем клиента: " << firstname << "\n";
 		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('" + tx.esc(firstname) + "', '" + tx.esc(lastname) + "', '" + tx.esc(email) + "')");
+		tx.commit();
+	}
+	void addPhone(auto& c, int clientId, std::string phone)
+	{
+		pqxx::work tx{ c };
+		std::cout << "Добавляем телефон: " << phone << "\n";
+		tx.exec("INSERT INTO public.Phones(phone, client) VALUES ('" + tx.esc(phone) + "', '" + tx.esc(std::to_string(clientId)) + "')");
 		tx.commit();
 	}
 
@@ -22,8 +29,8 @@ int main()
 {
 	try
 	{
-		//setlocale(LC_ALL, "ru_RU.UTF-8");
-		setlocale(LC_ALL, "Russian");
+		setlocale(LC_ALL, "ru_RU.UTF-8");
+		//setlocale(LC_ALL, "Russian");
 
 		pqxx::connection c("host=localhost "
 			"port=5432 "
@@ -33,17 +40,6 @@ int main()
 
 		
 
-		Client* client = new Client;
-		//std::cout << client->addClient() << std::endl;
-		client->addClient(c, "Ivan", "Kukuev", "vanek@example.ru");
-		client->addClient(c, "Gennady", "Reptile", "bezzubiy@example.ru");
-		client->addClient(c, "Iiiiigor", "Babushkin", "top4eg@example.ru");
-		client->addClient(c, "Evlampiy", "4orny", "demon666@example.ru");
-		client->addClient(c, "Shamil", "Perviy", "tcar@example.ru");
-		
-
-
-		return 0;
 		// Создаем БД
 		pqxx::work tx{ c };
 		tx.exec("DROP TABLE IF EXISTS public.Phones");
@@ -58,8 +54,29 @@ int main()
 			"\"phone\" VARCHAR NOT NULL,"
 			"\"client\" INTEGER REFERENCES public.Clients(id))");
 
-		//tx.commit();
-		tx.exec("commit;");
+		tx.commit();
+
+
+
+		Client* client = new Client;
+		//std::cout << client->addClient() << std::endl;
+		client->addClient(c, "Ivan", "Kukuev", "vanek@example.ru");
+		client->addClient(c, "Gennady", "Reptile", "bezzubiy@example.ru");
+		client->addClient(c, "Iiiiigor", "Babushkin", "top4eg@example.ru");
+		client->addClient(c, "Evlampiy", "4orny", "demon666@example.ru");
+		client->addClient(c, "Shamil", "Perviy", "tcar@example.ru");
+
+		client->addPhone(c, 2, "9834759345");
+		client->addPhone(c, 2, "324");
+		client->addPhone(c, 1, "34534534");
+		client->addPhone(c, 1, "34534534");
+
+
+
+
+
+
+
 	}
 	catch (const pqxx::sql_error& e)
 	{
