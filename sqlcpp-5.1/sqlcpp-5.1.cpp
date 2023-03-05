@@ -10,21 +10,21 @@ public:
 	void addClient(auto& c, std::string firstname, std::string lastname, std::string email)
 	{
 		pqxx::work tx{ c };
-		std::cout << "Добавляем клиента: " << firstname << "\n";
+		//std::cout << "Добавляем клиента: " << firstname << "\n";
 		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('" + tx.esc(firstname) + "', '" + tx.esc(lastname) + "', '" + tx.esc(email) + "')");
 		tx.commit();
 	}
 	void updateClient(auto& c, int clientId, std::string firstname, std::string lastname, std::string email)
 	{
 		pqxx::work tx{ c };
-		std::cout << "Обновляем клиента: " << firstname << "\n";
+		//std::cout << "Обновляем клиента: " << firstname << "\n";
 		tx.exec("UPDATE public.Clients SET firstname = '" + tx.esc(firstname) + "', lastname = '" + tx.esc(lastname) + "', email = '" + tx.esc(email) + "' WHERE id = '" + tx.esc(std::to_string(clientId)) + "'");
 		tx.commit();
 	}
 	void addPhone(auto& c, int clientId, std::string phone)
 	{
 		pqxx::work tx{ c };
-		std::cout << "Добавляем телефон: " << phone << "\n";
+		//std::cout << "Добавляем телефон: " << phone << "\n";
 		tx.exec("INSERT INTO public.Phones(phone, client) VALUES ('" + tx.esc(phone) + "', '" + tx.esc(std::to_string(clientId)) + "')");
 		tx.commit();
 	}
@@ -32,12 +32,27 @@ public:
 	// TODO Конструктор
 };
 
+void viewData(auto& c, std::string name)
+{
+	std::cout << "\t\t--== " << name << " ==--" << "\n";
+	pqxx::work tx{ c };
+	for (auto [client_id, firstname, lastname, email] : tx.query<int, std::string, std::string, std::string>("SELECT id, firstname, lastname, email FROM public.Clients ORDER BY id"))
+	{
+		std::cout << client_id << ". " << firstname << " " << lastname << ", <" << email << ">\n";
+		for (auto [phone_id, phone] : tx.query<int, std::string>("SELECT id, phone FROM public.Phones WHERE client = '" + tx.esc(std::to_string(client_id)) + "'"))
+		{
+			std::cout << "\t\t\t\t\t" << phone << "\n";
+		}
+	}
+	std::cout << "-------------------------------------------------" << std::endl << std::endl;
+}
+
 int main()
 {
 	try
 	{
-		setlocale(LC_ALL, "ru_RU.UTF-8");
-		//setlocale(LC_ALL, "Russian");
+		setlocale(LC_ALL, "ru_RU.UTF-8"); // Работает норм с БД
+		//setlocale(LC_ALL, "Russian"); // Работает норм в консоли
 
 		pqxx::connection c("host=localhost "
 			"port=5432 "
@@ -73,17 +88,19 @@ int main()
 		client->addClient(c, "Evlampiy", "4orny", "demon666@example.ru");
 		client->addClient(c, "Shamil", "Perviy", "tcar@example.ru");
 
-		client->addPhone(c, 1, "12222222");
-		client->addPhone(c, 1, "13333333");
-		client->addPhone(c, 2, "21111111");
-		client->addPhone(c, 2, "22222222");
-		client->addPhone(c, 2, "23333333");
-		client->addPhone(c, 3, "31111111");
-		client->addPhone(c, 4, "41111111");
+		client->addPhone(c, 1, "+12222222");
+		client->addPhone(c, 1, "+13333333");
+		client->addPhone(c, 2, "+21111111");
+		client->addPhone(c, 2, "+22222222");
+		client->addPhone(c, 2, "+23333333");
+		client->addPhone(c, 3, "+31111111");
+		client->addPhone(c, 4, "+66666666");
+		
+		viewData(c, "SOURCE DATA");
 
 		client->updateClient(c, 2, "Pupuk", "Perdikov", "PUPUK@example.ru");
 
-
+		viewData(c, "MOD DATA");
 
 
 
