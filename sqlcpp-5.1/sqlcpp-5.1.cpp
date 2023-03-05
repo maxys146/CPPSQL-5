@@ -40,11 +40,25 @@ public:
 		tx.exec("UPDATE public.Clients SET firstname = '" + tx.esc(firstname) + "', lastname = '" + tx.esc(lastname) + "', email = '" + tx.esc(email) + "' WHERE id = '" + tx.esc(std::to_string(clientId)) + "'");
 		tx.commit();
 	}
+	void deleteClient(auto& c, int clientId)
+	{
+		pqxx::work tx{ c };
+		//std::cout << "Удаляем клиента: " << firstname << "\n";
+		tx.exec("DELETE FROM public.Clients WHERE id = '" + tx.esc(std::to_string(clientId)) + "'");
+		tx.commit();
+	}
 	void addPhone(auto& c, int clientId, std::string phone)
 	{
 		pqxx::work tx{ c };
 		//std::cout << "Добавляем телефон: " << phone << "\n";
 		tx.exec("INSERT INTO public.Phones(phone, client) VALUES ('" + tx.esc(phone) + "', '" + tx.esc(std::to_string(clientId)) + "')");
+		tx.commit();
+	}
+	void deletePhone(auto& c, int clientId)
+	{
+		pqxx::work tx{ c };
+		//std::cout << "Добавляем телефон: " << phone << "\n";
+		tx.exec("DELETE FROM public.Phones WHERE client = '" + tx.esc(std::to_string(clientId)) + "'");
 		tx.commit();
 	}
 };
@@ -98,6 +112,14 @@ int main()
 		client->updateClient(c, 2, "Pupuk", "Perdikov", "PUPUK@example.ru");
 
 		viewData(c, "MOD DATA");
+
+		client->deletePhone(c, 3);
+
+		viewData(c, "Delete Phone");
+
+		client->deleteClient(c, 3);
+
+		viewData(c, "Delete Client");
 
 
 
