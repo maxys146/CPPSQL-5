@@ -29,35 +29,48 @@ public:
 	void addClient(auto& c, std::string firstname, std::string lastname, std::string email)
 	{
 		pqxx::work tx{ c };
-		//std::cout << "Добавляем клиента: " << firstname << "\n";
 		tx.exec("INSERT INTO public.Clients(firstname, lastname, email) VALUES ('" + tx.esc(firstname) + "', '" + tx.esc(lastname) + "', '" + tx.esc(email) + "')");
 		tx.commit();
 	}
 	void updateClient(auto& c, int clientId, std::string firstname, std::string lastname, std::string email)
 	{
 		pqxx::work tx{ c };
-		//std::cout << "Обновляем клиента: " << firstname << "\n";
 		tx.exec("UPDATE public.Clients SET firstname = '" + tx.esc(firstname) + "', lastname = '" + tx.esc(lastname) + "', email = '" + tx.esc(email) + "' WHERE id = '" + tx.esc(std::to_string(clientId)) + "'");
 		tx.commit();
 	}
 	void deleteClient(auto& c, int clientId)
 	{
 		pqxx::work tx{ c };
-		//std::cout << "Удаляем клиента: " << firstname << "\n";
 		tx.exec("DELETE FROM public.Clients WHERE id = '" + tx.esc(std::to_string(clientId)) + "'");
+		tx.commit();
+	}
+	void findClient(auto& c, std::string searchLine)
+	{
+		pqxx::work tx{ c };
+		std::cout << "Searching: " << searchLine << "\n";
+		for (auto [client_id, firstname, lastname, email, phone] : tx.query<int, std::string, std::string, std::string, std::string>("SELECT clients.id, clients.firstname, clients.lastname, clients.email, phones.phone FROM phones LEFT JOIN clients ON phones.client = clients.id "
+			"WHERE ("
+			"clients.firstname LIKE '" + tx.esc(searchLine) + "' OR "
+			"clients.lastname LIKE '" + tx.esc(searchLine) + "' OR "
+			"clients.email LIKE '" + tx.esc(searchLine) + "' OR "
+			"phones.phone LIKE '" + tx.esc(searchLine) + "') "
+			"ORDER BY id"))
+		{
+			std::cout << client_id << ". " << firstname << " " << lastname << ", <" << email << ", <" << phone << ">\n";
+
+
+		}
 		tx.commit();
 	}
 	void addPhone(auto& c, int clientId, std::string phone)
 	{
 		pqxx::work tx{ c };
-		//std::cout << "Добавляем телефон: " << phone << "\n";
 		tx.exec("INSERT INTO public.Phones(phone, client) VALUES ('" + tx.esc(phone) + "', '" + tx.esc(std::to_string(clientId)) + "')");
 		tx.commit();
 	}
 	void deletePhone(auto& c, int clientId)
 	{
 		pqxx::work tx{ c };
-		//std::cout << "Добавляем телефон: " << phone << "\n";
 		tx.exec("DELETE FROM public.Phones WHERE client = '" + tx.esc(std::to_string(clientId)) + "'");
 		tx.commit();
 	}
@@ -121,6 +134,9 @@ int main()
 
 		viewData(c, "Delete Client");
 
+		client->findClient(c, "%I%");
+		client->findClient(c, "%or%");
+		client->findClient(c, "%2%");
 
 
 	}
