@@ -7,6 +7,25 @@
 class Client
 {
 public:
+	Client(auto& c)
+	{
+		// Создаем БД
+		pqxx::work tx{ c };
+		tx.exec("DROP TABLE IF EXISTS public.Phones");
+		tx.exec("DROP TABLE IF EXISTS public.Clients");
+		tx.exec("CREATE TABLE IF NOT EXISTS public.Clients("
+			"id SERIAL PRIMARY KEY, "
+			"\"firstname\" VARCHAR NOT NULL,"
+			"\"lastname\" VARCHAR NOT NULL,"
+			"\"email\" VARCHAR NOT NULL)");
+		tx.exec("CREATE TABLE IF NOT EXISTS public.Phones("
+			"\"id\" SERIAL PRIMARY KEY,"
+			"\"phone\" VARCHAR NOT NULL,"
+			"\"client\" INTEGER REFERENCES public.Clients(id))");
+
+		tx.commit();
+
+	}
 	void addClient(auto& c, std::string firstname, std::string lastname, std::string email)
 	{
 		pqxx::work tx{ c };
@@ -28,8 +47,6 @@ public:
 		tx.exec("INSERT INTO public.Phones(phone, client) VALUES ('" + tx.esc(phone) + "', '" + tx.esc(std::to_string(clientId)) + "')");
 		tx.commit();
 	}
-
-	// TODO Конструктор
 };
 
 void viewData(auto& c, std::string name)
@@ -60,28 +77,8 @@ int main()
 			"user=postgres "
 			"password=111111");
 
-		
 
-		// Создаем БД
-		pqxx::work tx{ c };
-		tx.exec("DROP TABLE IF EXISTS public.Phones");
-		tx.exec("DROP TABLE IF EXISTS public.Clients");
-		tx.exec("CREATE TABLE IF NOT EXISTS public.Clients("
-			"id SERIAL PRIMARY KEY, "
-			"\"firstname\" VARCHAR NOT NULL,"
-			"\"lastname\" VARCHAR NOT NULL,"
-			"\"email\" VARCHAR NOT NULL)");
-		tx.exec("CREATE TABLE IF NOT EXISTS public.Phones("
-			"\"id\" SERIAL PRIMARY KEY,"
-			"\"phone\" VARCHAR NOT NULL,"
-			"\"client\" INTEGER REFERENCES public.Clients(id))");
-
-		tx.commit();
-
-
-
-		Client* client = new Client;
-		//std::cout << client->addClient() << std::endl;
+		Client* client = new Client(c);
 		client->addClient(c, "Ivan", "Kukuev", "vanek@example.ru");
 		client->addClient(c, "Gennady", "Reptile", "bezzubiy@example.ru");
 		client->addClient(c, "Iiiiigor", "Babushkin", "top4eg@example.ru");
